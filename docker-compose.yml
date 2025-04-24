@@ -1,12 +1,13 @@
 version: "3.8"
 services:
   ntp-gpsd:
-    build: .
-    container_name: ntp-gpsd
+#    build: .
+    image: ntp
+    container_name: ntp
     environment:
       - ENABLE_NTP=true
-      - ENABLE_GPS=true
-      - ENABLE_RTC=true
+      - ENABLE_GPS=false
+      - ENABLE_RTC=false
       - NTP_SERVERS=0.pool.ntp.org 1.pool.ntp.org
       - NTP_PRIORITY=1
       - GPS_PRIORITY=2
