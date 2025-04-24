@@ -26,8 +26,11 @@ services:
     network_mode: host
     cap_add:
       - SYS_TIME
+    expose:
+      - "123/udp"
+      - "2947/tcp"
     devices:
-      - "/dev/ttyUSB0:/dev/ttyUSB0"
-      - "/dev/rtc0:/dev/rtc0"
+      #- "/dev/ttyUSB0:/dev/ttyUSB0"
+      #- "/dev/rtc0:/dev/rtc0"
       # - "/dev/pps0:/dev/pps0"  # Uncomment if using PPS
     restart: unless-stopped
