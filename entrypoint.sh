@@ -15,7 +15,8 @@ GPSD_LISTEN_NETWORK=${GPSD_LISTEN_NETWORK:-false}
 if [[ "$ENABLE_NTP" == "true" ]]; then
   NTP_BLOCK=""
   for NTP in $NTP_SERVERS; do
-    NTP_BLOCK="${NTP_BLOCK}server $NTP iburst\n"
+    NTP_BLOCK="${NTP_BLOCK}server $NTP iburst
+"
   done
   NTP_BLOCK="${NTP_BLOCK}ntp_sourcedir /var/run/chrony"
 else
@@ -26,7 +27,8 @@ fi
 if [[ "$ENABLE_GPS" == "true" ]]; then
   GPS_BLOCK="refclock SHM 0 poll 3 refid GPS"
   if [[ "$ENABLE_PPS" == "true" ]]; then
-    GPS_BLOCK="$GPS_BLOCK\nrefclock PPS $PPS_DEVICE refid PPS lock GPS"
+    GPS_BLOCK="$GPS_BLOCK
+refclock PPS $PPS_DEVICE refid PPS lock GPS"
   fi
 else
   GPS_BLOCK="# GPS disabled"
@@ -39,11 +41,12 @@ else
   RTC_BLOCK="# RTC disabled"
 fi
 
-# Generate the chrony config
-printf "%b\n" "$(cat /chrony.conf.template \
-  | sed "s|{{NTP_BLOCK}}|$NTP_BLOCK|g" \
-  | sed "s|{{GPS_BLOCK}}|$GPS_BLOCK|g" \
-  | sed "s|{{RTC_BLOCK}}|$RTC_BLOCK|g")" > /etc/chrony/chrony.conf
+# Compose config by substituting blocks line by line (no %b to avoid accidental escapes)
+cat /chrony.conf.template | \
+  sed "s|{{NTP_BLOCK}}|$NTP_BLOCK|" | \
+  sed "s|{{GPS_BLOCK}}|$GPS_BLOCK|" | \
+  sed "s|{{RTC_BLOCK}}|$RTC_BLOCK|" \
+  > /etc/chrony/chrony.conf
 
 if [[ "$ENABLE_GPS" == "true" ]]; then
   if [[ "$GPSD_LISTEN_NETWORK" == "true" ]]; then
