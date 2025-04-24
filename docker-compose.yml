@@ -1,0 +1,19 @@
+version: "3.8"
+services:
+  ntp-gpsd:
+    build: .
+    container_name: ntp-gpsd
+    environment:
+      - GPS_DEVICE=/dev/ttyUSB0    # Your GPS device path
+      - ENABLE_PPS=false           # Set to "true" to enable PPS
+      - GPSD_LISTEN_NETWORK=false  # Set to "true" to allow gpsd network access
+    network_mode: host             # Needed for best NTP/gpsd performance
+    cap_add:
+      - SYS_TIME
+    devices:
+      - "/dev/ttyUSB0:/dev/ttyUSB0"   # Match to your GPS device
+      # - "/dev/pps0:/dev/pps0"       # Uncomment if using PPS
+    expose:
+      - "123/udp"
+      - "2947/tcp"
+    restart: unless-stopped
