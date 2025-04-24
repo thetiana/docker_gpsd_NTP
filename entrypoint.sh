@@ -11,14 +11,18 @@ PPS_DEVICE=${PPS_DEVICE:-/dev/pps0}
 RTC_DEVICE=${RTC_DEVICE:-/dev/rtc0}
 GPSD_LISTEN_NETWORK=${GPSD_LISTEN_NETWORK:-false}
 
-# NTP block
+# Generate NTP block
 if [[ "$ENABLE_NTP" == "true" ]]; then
-  NTP_BLOCK=$(echo "$NTP_SERVERS" | xargs -n1 | sed 's/^/server /;s/$/ iburst/' | tr '\n' '\\n')
+  NTP_BLOCK=""
+  for NTP in $NTP_SERVERS; do
+    NTP_BLOCK="${NTP_BLOCK}server $NTP iburst\n"
+  done
+  NTP_BLOCK="${NTP_BLOCK}ntp_sourcedir /var/run/chrony"
 else
   NTP_BLOCK="# NTP disabled"
 fi
 
-# GPS block
+# Generate GPS block
 if [[ "$ENABLE_GPS" == "true" ]]; then
   GPS_BLOCK="refclock SHM 0 poll 3 refid GPS"
   if [[ "$ENABLE_PPS" == "true" ]]; then
@@ -28,19 +32,18 @@ else
   GPS_BLOCK="# GPS disabled"
 fi
 
-# RTC block
+# Generate RTC block
 if [[ "$ENABLE_RTC" == "true" ]]; then
   RTC_BLOCK="refclock RTC $RTC_DEVICE refid RTC"
 else
   RTC_BLOCK="# RTC disabled"
 fi
 
-# Generate chrony.conf (preserving comments for disabled blocks)
-printf "%b" "$(cat /chrony.conf.template)" \
+# Generate the chrony config
+printf "%b\n" "$(cat /chrony.conf.template \
   | sed "s|{{NTP_BLOCK}}|$NTP_BLOCK|g" \
   | sed "s|{{GPS_BLOCK}}|$GPS_BLOCK|g" \
-  | sed "s|{{RTC_BLOCK}}|$RTC_BLOCK|g" \
-  > /etc/chrony/chrony.conf
+  | sed "s|{{RTC_BLOCK}}|$RTC_BLOCK|g")" > /etc/chrony/chrony.conf
 
 if [[ "$ENABLE_GPS" == "true" ]]; then
   if [[ "$GPSD_LISTEN_NETWORK" == "true" ]]; then
