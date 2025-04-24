@@ -4,6 +4,7 @@ services:
 #    build: .
     image: ntp
     container_name: ntp
+    privileged: true
     environment:
       - ENABLE_NTP=true
       - ENABLE_GPS=false
