@@ -20,13 +20,15 @@ RTC_UPDATE_MIN_FIX_TIME=${RTC_UPDATE_MIN_FIX_TIME:-600}
 RTC_UPDATE_MAX_DIFF=${RTC_UPDATE_MAX_DIFF:-20}
 GPSD_LISTEN_NETWORK=${GPSD_LISTEN_NETWORK:-false}
 
-# --- Compose NTP block ---
+# --- Compose NTP block with real newlines ---
 if [[ "$ENABLE_NTP" == "true" ]]; then
   NTP_BLOCK=""
   for NTP in $NTP_SERVERS; do
-    NTP_BLOCK="${NTP_BLOCK}server $NTP iburst\n"
+    NTP_BLOCK="${NTP_BLOCK}server $NTP iburst
+"
   done
-  NTP_BLOCK="${NTP_BLOCK}# NTP priority: $NTP_PRIORITY\nntp_sourcedir /var/run/chrony"
+  NTP_BLOCK="${NTP_BLOCK}# NTP priority: $NTP_PRIORITY
+ntp_sourcedir /var/run/chrony"
 else
   NTP_BLOCK="# NTP disabled"
 fi
@@ -35,7 +37,8 @@ fi
 if [[ "$ENABLE_GPS" == "true" ]]; then
   GPS_BLOCK="refclock SHM 0 poll 3 refid GPS # GPS priority: $GPS_PRIORITY"
   if [[ "$ENABLE_PPS" == "true" ]]; then
-    GPS_BLOCK="$GPS_BLOCK\nrefclock PPS $PPS_DEVICE refid PPS lock GPS"
+    GPS_BLOCK="$GPS_BLOCK
+refclock PPS $PPS_DEVICE refid PPS lock GPS"
   fi
 else
   GPS_BLOCK="# GPS disabled"
@@ -48,19 +51,17 @@ else
   RTC_BLOCK="# RTC disabled"
 fi
 
-# --- Debug output for troubleshooting ---
-echo "--- Generated chrony.conf blocks ---"
-echo -e "NTP_BLOCK:\n$NTP_BLOCK"
-echo -e "GPS_BLOCK:\n$GPS_BLOCK"
-echo -e "RTC_BLOCK:\n$RTC_BLOCK"
-echo "------------------------------------"
-
-# --- Generate chrony.conf ---
+# --- Generate chrony.conf template ---
 cat /chrony.conf.template \
   | sed "s|{{NTP_BLOCK}}|$NTP_BLOCK|" \
   | sed "s|{{GPS_BLOCK}}|$GPS_BLOCK|" \
   | sed "s|{{RTC_BLOCK}}|$RTC_BLOCK|" \
   > /etc/chrony/chrony.conf
+
+# --- Output generated config for debugging ---
+echo "----- /etc/chrony/chrony.conf (line numbered) -----"
+cat -n /etc/chrony/chrony.conf
+echo "---------------------------------------------------"
 
 # --- Start gpsd if enabled ---
 if [[ "$ENABLE_GPS" == "true" ]]; then
