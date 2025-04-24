@@ -1,7 +1,5 @@
-# chrony.conf for GPS time via SHM, optional PPS and RTC
-
-refclock SHM 0 poll 3 refid GPS
-{{PPS_BLOCK}}
+{{NTP_BLOCK}}
+{{GPS_BLOCK}}
 {{RTC_BLOCK}}
 
 makestep 1 3
