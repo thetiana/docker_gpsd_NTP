@@ -4,16 +4,28 @@ services:
     build: .
     container_name: ntp-gpsd
     environment:
-      - GPS_DEVICE=/dev/ttyUSB0    # Your GPS device path
-      - ENABLE_PPS=false           # Set to "true" to enable PPS
-      - GPSD_LISTEN_NETWORK=false  # Set to "true" to allow gpsd network access
-    network_mode: host             # Needed for best NTP/gpsd performance
+      - ENABLE_NTP=true
+      - ENABLE_GPS=true
+      - ENABLE_RTC=true
+      - NTP_SERVERS=0.pool.ntp.org 1.pool.ntp.org
+      - NTP_PRIORITY=1
+      - GPS_PRIORITY=2
+      - RTC_PRIORITY=3
+      - GPS_DEVICE=/dev/ttyUSB0
+      - ENABLE_PPS=false
+      - PPS_DEVICE=/dev/pps0
+      - RTC_DEVICE=/dev/rtc0
+      - ENABLE_RTC_UPDATE_FROM_NTP=true
+      - ENABLE_RTC_UPDATE_FROM_GPS=true
+      - RTC_UPDATE_INTERVAL=3600
+      - RTC_UPDATE_MIN_FIX_TIME=600
+      - RTC_UPDATE_MAX_DIFF=20
+      - GPSD_LISTEN_NETWORK=false
+    network_mode: host
     cap_add:
       - SYS_TIME
     devices:
-      - "/dev/ttyUSB0:/dev/ttyUSB0"   # Match to your GPS device
-      # - "/dev/pps0:/dev/pps0"       # Uncomment if using PPS
-    expose:
-      - "123/udp"
-      - "2947/tcp"
+      - "/dev/ttyUSB0:/dev/ttyUSB0"
+      - "/dev/rtc0:/dev/rtc0"
+      # - "/dev/pps0:/dev/pps0"  # Uncomment if using PPS
     restart: unless-stopped

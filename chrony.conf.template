@@ -1,7 +1,8 @@
-# chrony.conf for GPS time via SHM, optional PPS
+# chrony.conf for GPS time via SHM, optional PPS and RTC
 
 refclock SHM 0 poll 3 refid GPS
 {{PPS_BLOCK}}
+{{RTC_BLOCK}}
 
 makestep 1 3
 allow 0.0.0.0/0
