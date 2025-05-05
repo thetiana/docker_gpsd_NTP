@@ -16,9 +16,7 @@ echo "ENABLE_PPS: [$ENABLE_PPS]"
 echo "ENABLE_RTC: [$ENABLE_RTC]"
 echo "NTP_SERVERS: [$NTP_SERVERS]"
 echo "GPS_DEVICE: [$GPS_DEVICE]"
-echo "PPS_DEVICE: [$PPS_DEVICE]"
 echo "RTC_DEVICE: [$RTC_DEVICE]"
-
 # Defaults
 ENABLE_NTP="${ENABLE_NTP:-true}"
 ENABLE_GPS="${ENABLE_GPS:-false}"
@@ -29,7 +27,6 @@ NTP_PRIORITY="${NTP_PRIORITY:-1}"
 GPS_PRIORITY="${GPS_PRIORITY:-2}"
 RTC_PRIORITY="${RTC_PRIORITY:-3}"
 GPS_DEVICE="${GPS_DEVICE:-/dev/ttyUSB0}"
-PPS_DEVICE="${PPS_DEVICE:-/dev/pps0}"
 RTC_DEVICE="${RTC_DEVICE:-/dev/rtc0}"
 RTC_UPDATE_INTERVAL="${RTC_UPDATE_INTERVAL:-3600}"
 GPSD_LISTEN_NETWORK="${GPSD_LISTEN_NETWORK:-false}"
@@ -47,9 +44,12 @@ fi
 
 # Compose GPS block
 if is_enabled "$ENABLE_GPS"; then
-  GPS_BLOCK="refclock SHM 0 refid GPS"
+#  GPS_BLOCK="refclock SHM 0 refid GPS"
+  GPS_BLOCK="$GPS_BLOCK_ROLL_1"
+  GPS_BLOCK="$GPS_BLOCK\n$GPS_BLOCK_ROLL_2"
   if is_enabled "$ENABLE_PPS"; then
-    GPS_BLOCK="$GPS_BLOCK\nrefclock PPS $PPS_DEVICE refid PPS lock GPS"
+    GPS_BLOCK="$GPS_BLOCK\n$GPS_PPS_ROLL_1"
+    GPS_BLOCK="$GPS_BLOCK\n$GPS_PPS_ROLL_2"
   fi
 else
   GPS_BLOCK="# GPS disabled"
@@ -57,7 +57,20 @@ fi
 
 # Compose RTC block
 if is_enabled "$ENABLE_RTC"; then
-  RTC_BLOCK="refclock RTC $RTC_DEVICE refid RTC # RTC priority: $RTC_PRIORITY"
+  RTC_BLOCK="#RTC_BLOCK"
+  RTC_BLOCK="$RTC_BLOCK\n$RTC_ROLL_1"
+  RTC_BLOCK="$RTC_BLOCK\n$RTC_ROLL_2"
+  RTC_BLOCK="$RTC_BLOCK\n$RTC_ROLL_3"
+else
+  RTC_BLOCK="# RTC disabled"
+fi
+
+# Compose RTC block
+if is_enabled "$ENABLE_RTC"; then
+  RTC_BLOCK="#RTC_BLOCK"
+  RTC_BLOCK="$RTC_BLOCK\n$RTC_ROLL_1"
+  RTC_BLOCK="$RTC_BLOCK\n$RTC_ROLL_2"
+  RTC_BLOCK="$RTC_BLOCK\n$RTC_ROLL_3"
 else
   RTC_BLOCK="# RTC disabled"
 fi
@@ -87,7 +100,17 @@ if is_enabled "$ENABLE_GPS"; then
   fi
 fi
 
-sleep 10
+sleep 5
+
+# Compose RTC block
+#if is_enabled "$ENABLE_RTC"; then
+# Links RTC to shared memory
+#   ln -s /dev/rtc0 /dev/shm/1
+#   chmod 644 /dev/shm/1
+#   chown root:chrony /dev/shm/1
+#else
+
+#fi
 
 # Start RTC updater if enabled
 if is_enabled "$ENABLE_RTC" && [[ "$RTC_UPDATE_INTERVAL" != "0" ]]; then
